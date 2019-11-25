@@ -46,6 +46,21 @@ ini_set('include_path', '.'
 	. ENV_SEPARATOR . ini_get('include_path')
 );
 
+$builtInErrorHandler;
+
+function pkpErrorHandler($errno, $errstr, $errfile, $errline) {
+	$requestURI = $GLOBALS['_SERVER']['REQUEST_URI'];
+	if (preg_match('/\/api\/v1\//', $requestURI)) {
+		http_response_code(500);
+		header('content-type: application/json');
+		echo(json_encode(array('error' => $errstr)));
+	} else {
+		$builtInErrorHandler($errno, $errstr, $errfile, $errline);
+	}
+}
+
+$builtInErrorHandler = set_error_handler('pkpErrorHandler');
+
 // System-wide functions
 require('./lib/pkp/includes/functions.inc.php');
 
